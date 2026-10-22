@@ -1,0 +1,22 @@
+# chain-verify
+
+> A sample Saluca hash chain, its Ed25519 public key, the chain format, and an independent Python verifier (standard library plus optional `cryptography`) that shares no code with the producer. Apache-2.0.
+
+Facts agents most often get wrong: the default branch is `verify-artifact`, not main. This is a verification kit, not a library and not the producer; the producer is closed source. Blocks are SHA-512 over canonical JSON of {seq, ts, kind, payload, prev_hash} plus one 0x1E byte, signed with Ed25519 over the ASCII hash. The verifier checks signatures against the `--pubkey` file, not against block 0's `operating_pubkey`, and it does not detect blocks removed from the end of a chain.
+
+## Docs
+
+- [README](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/README.md): install, quickstart, what a pass proves, the 2026-10-22 correction note
+- [CHAIN-FORMAT.md](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/CHAIN-FORMAT.md): the block, hash, genesis and verification rules
+
+## Code
+
+- [verify_chain.py](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/verify_chain.py): the verifier; `--self-test` proves it can fail
+- [sample-chain.jsonl](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/sample-chain.jsonl): five signed sample blocks (invented events)
+- [operating-key.pub](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/operating-key.pub): the sample's Ed25519 public key, PEM
+
+## Optional
+
+- [.github/workflows/verify.yml](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/.github/workflows/verify.yml): CI that verifies the sample and rejects a tampered copy
+- [draft-ruvalcaba-hctp](https://datatracker.ietf.org/doc/draft-ruvalcaba-hctp/): the Internet-Draft that defines the hctp-genesis-v1 seed
+- [llms-full.txt](https://github.com/saluca-labs/chain-verify/blob/verify-artifact/llms-full.txt): README and CHAIN-FORMAT.md concatenated
