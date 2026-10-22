@@ -17,6 +17,27 @@ A stranger's kit for checking a Saluca tamper-evident hash chain: the format, a 
 >    chain does not record its own length, so truncation is only detectable against a head hash
 >    you recorded earlier, out of band.
 
+## How it works
+
+`verify_chain.py` reads the chain file one JSON block per line and walks it once. Every rule below is a line in `verify()`; a failing rule adds a finding and the walk continues, so one run reports every broken block, except a block with a missing field, which stops the walk.
+
+```mermaid
+flowchart TD
+  file["chain file, one JSON block per line<br/>e.g. sample-chain.jsonl"] --> main["main()<br/>json.loads per non-blank line"]
+  key["--pubkey operating-key.pub"] --> load["load_pubkey()<br/>None if cryptography is missing"]
+  load --> verify
+  main --> verify["verify(blocks, pubkey)<br/>prev = GENESIS_ROOT 'hctp-genesis-v1'"]
+  verify -- "next block" --> fields{"seq, ts, kind, payload,<br/>prev_hash, hash present?"}
+  verify -- "no blocks left, or none at all" --> result
+  fields -- "no" --> stop["finding: missing field(s)<br/>walk stops"]
+  fields -- "yes" --> rules["rule 1: seq == index<br/>rule 2: prev_hash == prev<br/>rule 3: body_hash(block) == hash<br/>(SHA-512 of canonical JSON + 0x1E)<br/>each failure adds a finding"]
+  rules --> sig["rule 4, only if a key loaded:<br/>Ed25519 verify of sig over the ASCII hash"]
+  sig -- "prev = this block's hash" --> verify
+  stop --> result["no findings: RESULT chain intact, exit 0<br/>any finding: CHAIN FAILS VERIFICATION, exit 2"]
+```
+
+Nothing in the walk compares the `--pubkey` file with block 0's `operating_pubkey`, and nothing records how many blocks the chain should have; both limits are in the correction above.
+
 ## Status
 
 Research artifact, maintained. What works today: the verifier checks seq order, links, SHA-512 body
@@ -24,7 +45,10 @@ hashes and (with `--pubkey` and `cryptography` installed) Ed25519 signatures, an
 shows it catching an edited payload, a broken link, a deleted middle block and a swapped pair. CI
 runs the self-test, verifies the sample, and requires a tampered copy to be rejected. What it does
 not do: compare `--pubkey` with the key in block 0, or detect truncation of the tail (see the
-correction above).
+correction above). The extreme case of truncation is an empty file: it prints
+`blocks     : 0` and `RESULT     : chain intact` and exits 0 (tested 2026-10-22). The self-test
+builds an unsigned chain, so it exercises rules 1 to 3 only; signature checking is exercised by
+the signed sample.
 
 Saluca says its agents keep a hash-chained record, so corruption is detectable rather than silent.
 That is a claim about a data structure, and a claim about a data structure is one a stranger can
@@ -143,6 +167,17 @@ published key, say so. It is a reasonable thing to ask for and we do not have it
 Each line of the chain is one JSON block. The hash is SHA-512 over the canonical JSON of
 `{seq, ts, kind, payload, prev_hash}` followed by one 0x1E byte; the signature is Ed25519 over the
 ASCII hash. `CHAIN-FORMAT.md` has the details a re-implementation gets wrong.
+
+### In this repo and not in this repo
+
+| Layer | In this repo | Licence | Where it lives |
+|---|---|---|---|
+| Chain format | yes | Apache-2.0 | [`CHAIN-FORMAT.md`](CHAIN-FORMAT.md) |
+| Independent verifier | yes | Apache-2.0 | [`verify_chain.py`](verify_chain.py) |
+| Signed sample and its public key | yes | Apache-2.0 | `sample-chain.jsonl`, `operating-key.pub` |
+| The producer that wrote the sample | no | not open source | Saluca's product; deliberately not here, so the verifier cannot share its code |
+| A different, SHA-256 chain for agent memory | no | see that repo | [saluca-labs/soulguard](https://github.com/saluca-labs/soulguard) |
+| The genesis marker's protocol | no | IETF draft | [draft-ruvalcaba-hctp](https://datatracker.ietf.org/doc/draft-ruvalcaba-hctp/) |
 
 ## Screenshots
 
