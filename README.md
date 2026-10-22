@@ -62,7 +62,8 @@ Tested 2026-10-22 with Python 3.12.10 and `cryptography` 50.0.2.
 ```bash
 git clone https://github.com/saluca-labs/chain-verify
 cd chain-verify
-pip install cryptography      # optional: needed for the signature check only
+# optional, only for the signature check:
+pip install cryptography
 ```
 
 The verifier itself is one file and uses the standard library. `cryptography` is needed for the
