@@ -3,6 +3,14 @@
 Everything here is what you need to check a chain yourself. Nothing in it depends on Saluca code,
 and `verify_chain.py` in this directory was written from this page rather than the other way round.
 
+> **Correction, 2026-10-22.** Two sentences below said more than the format or the verifier
+> delivers. (1) "A deleted block breaks rule 1 and rule 2" holds for every block except the last:
+> removing blocks from the end of a chain leaves a shorter chain that passes all four rules, because
+> nothing in a block records how many blocks follow it. (2) "A chain that switches signing keys
+> mid-way cannot do so silently" depends on the verifier comparing the signing key with block 0's
+> `operating_pubkey`; `verify_chain.py` does not, it checks against the key you pass. Both sentences
+> are amended in place below, marked with the date.
+
 ## A block
 
 One JSON object per line. Order in the file is the order in the chain.
@@ -47,7 +55,8 @@ Block 0 has `kind: "genesis"` and `prev_hash: "hctp-genesis-v1"`, and its payloa
 - `root_before`: `hctp-genesis-v1`
 
 Anchoring the key in block 0 means a chain that switches signing keys mid-way cannot do so
-silently: the key is part of the hashed record.
+silently: the key is part of the hashed record. (Amended 2026-10-22: that holds only for a verifier that compares the
+signing key with this field. `verify_chain.py` does not; compare them yourself, as the README shows.)
 
 ## Verifying
 
@@ -58,13 +67,15 @@ For each block, in order:
 3. Recomputing the body hash gives `hash`.
 4. If a public key is supplied, `sig` verifies over `hash`.
 
-Any single failure fails the chain. A deleted block breaks rule 1 and rule 2, a reordering breaks
-both, an edit breaks rule 3, and a forged block without the key breaks rule 4.
+Any single failure fails the chain. A deleted block breaks rule 1 and rule 2 (amended 2026-10-22:
+unless it is the last block, or a run of blocks at the end; truncation passes all four rules), a
+reordering breaks both, an edit breaks rule 3, and a forged block without the key breaks rule 4.
 
 ## What this format does and does not give you
 
 It gives you **tamper evidence**: nothing in a chain you already hold can be changed without the
-change showing.
+change showing. (Amended 2026-10-22: except shortening it from the end. To catch that, keep the
+head hash you saw and compare it next time.)
 
 It does not give you **tamper resistance**, and it never claimed to. Whoever holds the signing key
 can write whatever they like into new blocks, and whoever holds the file can throw the file away.

@@ -1,0 +1,6 @@
+# Reviewed 2026-10-22 (repo-docs pass). generic-api-key fires on block 0 of the sample chain, at the
+# "operating_pubkey" field: a 64-hex Ed25519 PUBLIC key, published on purpose and identical to
+# operating-key.pub. It is not a secret. The private half was discarded when the sample was made.
+49df9f0bf7c20ae2bb3a91e214e24e46e12cf700:sample-chain.jsonl:generic-api-key:1
+# Same line, as fingerprinted by a working-tree scan (gitleaks dir), which has no commit prefix.
+sample-chain.jsonl:generic-api-key:1

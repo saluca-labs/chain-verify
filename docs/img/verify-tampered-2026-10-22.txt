@@ -1,0 +1,14 @@
+Command (run from the repository root of a clean clone):
+  sed 's/"bytes": 412/"bytes": 999999/' sample-chain.jsonl > tampered.jsonl && python verify_chain.py tampered.jsonl --pubkey operating-key.pub
+
+Ref: origin/verify-artifact 2511558
+Python: 3.12.10, cryptography 50.0.2
+Exit code: 2
+Captured: 2026-10-22. Rendered from the text below with rich (SVG export) and headless Chrome; the image body is this output, unchanged.
+
+Output, verbatim:
+blocks     : 5
+head       : 860a6a062930ceaedb51db1fbfc20429...
+signatures : checked
+  FAIL: block 2: content altered, hash 2d6b4a18c4a1deaa... does not match its body (ebba0d90785be201...)
+RESULT     : CHAIN FAILS VERIFICATION
