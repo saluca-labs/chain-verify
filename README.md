@@ -1,3 +1,5 @@
+![chain-verify](docs/img/banner-2026-10-23.jpg)
+
 # chain-verify
 
 A stranger's kit for checking a Saluca tamper-evident hash chain: the format, a signed sample, the public key, and a verifier that imports none of Saluca's code.
